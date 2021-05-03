@@ -4,6 +4,12 @@
 
 ## Description
 
+### TO DO:
+
+[ ] circuit driagram
+
+[ ] save `access_token` to EEPROM memory
+
 Project uses an ESP32 to call the TwitchTV Helix API to check status of Kitboga's stream. The result is displayed on a 3D-printed sign with addressible RGBs and FastLED library.
 
 NOTE: This is a small remix of a great design by makkuro [thing:749887](https://www.thingiverse.com/thing:749887).
@@ -20,6 +26,23 @@ NOTE: This is a small remix of a great design by makkuro [thing:749887](https://
 - HTTPClient
 - Arduino JSON
 - FastLED https://www.arduino.cc/reference/en/libraries/fastled/
+
+## ESP32 setup
+
+_circuit diagram_
+
+## API setup hints
+
+1. create a Twitch developer account to obtain access keys https://dev.twitch.tv/docs/api/
+
+2. in Arduino IDE, fill `clientID` & `clientSecret` accordingly. Uncomment line #156 to print auth token in Serial Monitor.
+   Upload code to the the μC.
+
+NOTE: you could use programmes like Postman or Insomnia to generate the token yourself.
+
+3. Auth token will be generated and printed in the Serial Monitor. Grab it and paste to `access_token` in Arduino IDE (it lasts for around 60 days, this will prevent creating a new one when you power cycle your device in early stages). Comment back the #156 line (optional), re-upload the code with a valid `auth_token`.
+
+Follow erros in the Serial Monitor for debugging. Further lines from the code can be uncommented to print importand variables.
 
 ## Know issue
 
