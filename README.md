@@ -2,17 +2,37 @@
 
 3D-printed sign that shows if the Kitboga streamer is online on Twitch
 
-## Description
-
 ### TO DO:
 
-[ ] circuit driagram
-
 [ ] save `access_token` to EEPROM memory
+
+[ ] fixed error codes
+
+## Description
+
+---
 
 Project uses an ESP32 to call the TwitchTV Helix API to check status of Kitboga's stream. The result is displayed on a 3D-printed sign with addressible RGBs and FastLED library.
 
 NOTE: This is a small remix of a great design by makkuro [thing:749887](https://www.thingiverse.com/thing:749887).
+
+![KiT_STL](https://raw.githubusercontent.com/pawelowski/KitbogaTwitchStatus/main/photos/KiT_SLT_screenshot.JPG)
+![boga_STL](https://raw.githubusercontent.com/pawelowski/KitbogaTwitchStatus/main/photos/boga_STL_screenshot.JPG)
+
+# Details
+
+When my fav streamer Kitboga (https://www.twitch.tv/kitboga) comes up live I get notified with all the LEDs lighting up in the stream colour.
+
+When he's offile, only 1 LED illuminates.
+
+Also error states are displayed:
+
+### Error Codes
+
+- 1 red led = Unauthorized/Expired keys
+- 2 red leds = Auth Issue
+- 3 red leds = Internal Server Error
+- ALL red = other unknown request failure
 
 ## Hardware BoM
 
@@ -29,7 +49,10 @@ NOTE: This is a small remix of a great design by makkuro [thing:749887](https://
 
 ## ESP32 setup
 
-_circuit diagram_
+![circuit_diagram](https://github.com/pawelowski/KitbogaTwitchStatus/blob/main/photos/circuit_diagram.JPG)
+
+- diode D1 provents power being drawn from the ESP32
+- capacitor C1 fixes [Timed out waiting for packet header](https://randomnerdtutorials.com/solved-failed-to-connect-to-esp32-timed-out-waiting-for-packet-header/)
 
 ## API setup hints
 
