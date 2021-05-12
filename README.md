@@ -10,7 +10,7 @@ Still documenting the repo
 
 [ ] save `access_token` to EEPROM memory
 
-[ ] fixe error codes
+[ ] fix error codes
 
 ## Description
 
@@ -22,7 +22,9 @@ NOTE: The STLs are a small remix of a great design by makkuro [thing:749887](htt
 
 When my fav streamer Kitboga (https://www.twitch.tv/kitboga) comes up live I get notified with all the LEDs lighting up in the stream's colour.
 
-When he's offlinee, only 1 LED over _i_ illuminates.
+TBA: picture of KIT online
+
+When he's offline, only 1 LED over _i_ illuminates.
 
 ![Kit-offline](https://github.com/pawelowski/KitbogaTwitchStatus/blob/main/photos/KIT_offline.jpg)
 
@@ -45,8 +47,8 @@ Also error states are displayed.
 ## Libriaries and other necessary resources
 
 - access to Twich Helix API https://dev.twitch.tv/docs/api/
-- HTTPClient
-- Arduino JSON
+- HTTPClient https://www.arduino.cc/reference/en/libraries/httpclient/
+- Arduino JSON https://www.arduino.cc/reference/en/libraries/arduino_json/
 - FastLED https://www.arduino.cc/reference/en/libraries/fastled/
 
 ## ESP32 setup
@@ -65,9 +67,9 @@ Also error states are displayed.
 
 NOTE: Also used programes clients like Postman or Insomnia to preview the token myself.
 
-3. Auth token was generated from the API and printed in the Serial Monitor. Grabed it and pasted to `access_token` in Arduino IDE (it lasts for around 60 days, this will prevent creating a new one when you power cycle your device in early stages). Commented back the #156 line, re-uploaded the code with a valid `auth_token`.
+3. Auth token was generated from the API and printed in the Serial Monitor. Grabed it and pasted to `access_token` in Arduino IDE (it lasts for around 60 days, this prevents creating a new one when I often power cycle the device in early stages). Commented back the #156 line, re-uploaded the code with a valid `auth_token`.
 
-Erros in the Serial Monitor for debugging. Further lines from the code can be uncommented to print important variables.
+Erros are shown in the Serial Monitor for debugging. Further lines from the code can be uncommented to print important variables.
 
 ## STL and printing details
 
