@@ -1,3 +1,7 @@
+\> Work In Progress <
+
+Still documenting the repo
+
 # Kitboga Twitch Status
 
 3D-printed sign that shows if the Kitboga streamer is online on Twitch.
@@ -6,7 +10,7 @@
 
 [ ] save `access_token` to EEPROM memory
 
-[ ] fixed error codes
+[ ] fixe error codes
 
 ## Description
 
@@ -20,7 +24,7 @@ When my fav streamer Kitboga (https://www.twitch.tv/kitboga) comes up live I get
 
 When he's offlinee, only 1 LED over _i_ illuminates.
 
-![Kit-offline]()
+![Kit-offline](https://github.com/pawelowski/KitbogaTwitchStatus/blob/main/photos/KIT_offline.jpg)
 
 Also error states are displayed.
 
@@ -29,7 +33,7 @@ Also error states are displayed.
 - TBA= Unauthorized/Expired keys
 - TBA red leds = Auth Issue
 - TBA red leds = Internal Server Error
-- ALL red = other unknown request failure
+- ALL red = other unknown request failure (including response `-1`)
 
 ## Hardware BoM
 
@@ -68,11 +72,14 @@ Erros in the Serial Monitor for debugging. Further lines from the code can be un
 ## STL and printing details
 
 ![KiT_STL](https://raw.githubusercontent.com/pawelowski/KitbogaTwitchStatus/main/photos/KiT_SLT_screenshot.JPG?v4&s=1260px)
-
 ![boga_STL](https://raw.githubusercontent.com/pawelowski/KitbogaTwitchStatus/main/photos/boga_STL_screenshot.JPG)
 
 - nothing special here, regular 0.2mm nozzle and low infil 15%
 
 # Know issue
 
-The Twich API requires HTTPS requests. However, I only managed to make this work with HTTP via HTTPClient. This, once in a while, causes the ESP32 to fail to call the API - generates http response code `-1`. A power cycle or reboot of the ESP seems to mostly fix it.. this is horrible and annoying so if you want to help and develop proper HTTPS calls (maybe with WiFiClientSecure lib) then plz get involved <3
+The Twich API requires HTTPS requests. However, I only managed to make this work with HTTP via HTTPClient. This, once in a while, causes the ESP32 to fail to call the API - generates http response code `-1`. A power cycle or reboot of the ESP seems to mostly fix it.. this is horrible and annoying so if you want to help and develop proper HTTPS calls (maybe with [WiFiClientSecure](https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFiClientSecure) lib) then plz get involved <3
+
+# More photos
+
+![](https://github.com/pawelowski/KitbogaTwitchStatus/blob/main/photos/STL_LED_inside.jpg)
