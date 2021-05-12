@@ -12,24 +12,23 @@
 
 Project uses an ESP32 to call the TwitchTV Helix API to check status of Kitboga's stream. The result is displayed on a 3D-printed sign with addressible RGBs and FastLED library.
 
-NOTE: This is a small remix of a great design by makkuro [thing:749887](https://www.thingiverse.com/thing:749887).
-
-![KiT_STL](https://raw.githubusercontent.com/pawelowski/KitbogaTwitchStatus/main/photos/KiT_SLT_screenshot.JPG)
-![boga_STL](https://raw.githubusercontent.com/pawelowski/KitbogaTwitchStatus/main/photos/boga_STL_screenshot.JPG)
+NOTE: The STLs are a small remix of a great design by makkuro [thing:749887](https://www.thingiverse.com/thing:749887).
 
 # Details
 
-When my fav streamer Kitboga (https://www.twitch.tv/kitboga) comes up live I get notified with all the LEDs lighting up in the stream colour.
+When my fav streamer Kitboga (https://www.twitch.tv/kitboga) comes up live I get notified with all the LEDs lighting up in the stream's colour.
 
-When he's offile, only 1 LED illuminates.
+When he's offlinee, only 1 LED over _i_ illuminates.
+
+![Kit-offline]()
 
 Also error states are displayed.
 
 ### Error Codes
 
-- 1 red led = Unauthorized/Expired keys
-- 2 red leds = Auth Issue
-- 3 red leds = Internal Server Error
+- TBA= Unauthorized/Expired keys
+- TBA red leds = Auth Issue
+- TBA red leds = Internal Server Error
 - ALL red = other unknown request failure
 
 ## Hardware BoM
@@ -55,17 +54,25 @@ Also error states are displayed.
 
 ## API setup
 
-1. create a Twitch developer account to obtain access keys https://dev.twitch.tv/docs/api/
+1. created a Twitch developer account to obtain access keys https://dev.twitch.tv/docs/api/
 
-2. in Arduino IDE, fill `clientID` & `clientSecret` accordingly. Uncomment line #156 to print auth token in Serial Monitor.
-   Upload code to the the μC.
+2. in Arduino IDE, filled `clientID` & `clientSecret` accordingly. Line #156 to prints auth token in Serial Monitor.
+   Uploaded code to the the μC.
 
-NOTE: you could use programes clients like Postman or Insomnia to preview the token yourself.
+NOTE: Also used programes clients like Postman or Insomnia to preview the token myself.
 
-3. Auth token will be generated the API and printed in the Serial Monitor. Grab it and paste to `access_token` in Arduino IDE (it lasts for around 60 days, this will prevent creating a new one when you power cycle your device in early stages). Comment back the #156 line (optional), re-upload the code with a valid `auth_token`.
+3. Auth token was generated from the API and printed in the Serial Monitor. Grabed it and pasted to `access_token` in Arduino IDE (it lasts for around 60 days, this will prevent creating a new one when you power cycle your device in early stages). Commented back the #156 line, re-uploaded the code with a valid `auth_token`.
 
-Follow erros in the Serial Monitor for debugging. Further lines from the code can be uncommented to print important variables.
+Erros in the Serial Monitor for debugging. Further lines from the code can be uncommented to print important variables.
 
-## Know issue
+## STL and printing details
 
-Some times, the Http request returns -1 which I can't figure out what it means or why it happens. When that occurs, the sign will display critical error state (all LEDs show red). Rebooting the ESP32 solves the issue. If you have any ideas why my Http response is -1, please let me know.
+![KiT_STL](https://raw.githubusercontent.com/pawelowski/KitbogaTwitchStatus/main/photos/KiT_SLT_screenshot.JPG?v4&s=1260px)
+
+![boga_STL](https://raw.githubusercontent.com/pawelowski/KitbogaTwitchStatus/main/photos/boga_STL_screenshot.JPG)
+
+- nothing special here, regular 0.2mm nozzle and low infil 15%
+
+# Know issue
+
+The Twich API requires HTTPS requests. However, I only managed to make this work with HTTP via HTTPClient. This, once in a while, causes the ESP32 to fail to call the API - generates http response code `-1`. A power cycle or reboot of the ESP seems to mostly fix it.. this is horrible and annoying so if you want to help and develop proper HTTPS calls (maybe with WiFiClientSecure lib) then plz get involved <3
