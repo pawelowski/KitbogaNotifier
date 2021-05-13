@@ -1,13 +1,13 @@
 /*
- 
-3D-printed sign that shows if the Kitboga streamer is online on Twitch
 
-Credit for STL design goes to makkuro https://www.thingiverse.com/thing:749887
+  3D-printed sign that shows if the Kitboga streamer is online on Twitch
 
-Other rescourses used:
+  Credit for STL design goes to makkuro https://www.thingiverse.com/thing:749887
+
+  Other rescourses used:
   https://randomnerdtutorials.com/esp32-http-get-post-arduino/
 
-/*
+  /*
    Error Codes:
    # 1 red led = Unauthorized/Expired keys
    # 2 red leds = Auth Issue
@@ -24,33 +24,40 @@ Other rescourses used:
 #error "Requires FastLED 3.1 or later; check github for latest code."
 #endif
 
+// LED setup variables
 #define DATA_PIN 2
 #define LED_TYPE WS2811
 #define COLOR_ORDER GRB
-#define NUM_LEDS 150
-#define INDICAT_LED 18
+#define NUM_LEDS 60    //total number of used LEDs
+#define INDICAT_LED 18 // the dot over letter i
 #define BRIGHTNESS 120
-#define FRAMES_PER_SECOND 120
 
+//Colour definitions
+CHSV yellow = CHSV(40, 240, 120);
+CHSV boga_c = CHSV(190, 239, 155);
+CHSV red = CHSV(255, 255, 130);
+CHSV orange = CHSV(23, 233, 120);
+CHSV green = CHSV(72, 213, 100);
 // =[ WiFi variables ]=
-const char *ssid = " ";
-const char *password = " ";
+const char *ssid = "Polska_Pany";
+const char *password = "PolakiCebulaki6";
 
 // =[ Twich Helix API variables ]=
 //URLs
 const char *validateOAuthURL = "https://id.twitch.tv/oauth2/validate";
 const char *searchStreamerURL = "https://api.twitch.tv/helix/streams?user_login=kitboga";
-const char *searchChannelURL = "https://api.twitch.tv/helix/search/channels?query=kitboga";
+
+int streamersID = 32787655; //kitboga stream ID
 
 //Tokens
-String clientSecret = " ";
-String clientID = " ";
+String clientSecret = "";
+String clientID = "";
 String authURL = "https://id.twitch.tv/oauth2/token?client_id=" + clientID + "&client_secret=" + clientSecret + "&grant_type=client_credentials";
-String access_token = " ";
+String access_token = "";
 
 // =[ Other variables ]=
 unsigned long lastTime = 0;
-unsigned long timerDelay = 60; //seconds
+unsigned long timerDelay = 15; //seconds
 
 CRGB leds[NUM_LEDS];
 
@@ -73,7 +80,7 @@ void setup()
   Serial.print("Connected to WiFi network with IP Address: ");
   Serial.println(WiFi.localIP());
 
-  //Serial.printf("Timer set to %d seconds, it will take that time before publishing the first reading and further request intervals.\n", timerDelay);
+  //Make the 1st requests, don't wait for the interval of "timerDelay" variable
   validate();
   searchStream();
 }
@@ -91,9 +98,9 @@ void loop()
       // if validation successful, go and search the stream up
       if (validate())
         searchStream();
-      // otherwise, keep displaying the indication state based on the http request
+      // otherwise, keep displaying the indication state based on the http request result
 
-      //auth(); /for debugging: check your auth separtely
+      //auth(); //for debugging: check your auth separtely
     }
     else
     {
@@ -158,7 +165,7 @@ void auth()
   else
   {
     Serial.print("Auth Issue");
-    errorState(2);
+    errorState(1, orange);
   }
   http.end();
 }
@@ -174,7 +181,7 @@ void searchStream()
   }
 
   //int resultLength = twitchStreamResponse["data"].length();
-  int streamersID = 32787655;
+
   if ((int(twitchStreamResponse["data"].length()) > 0) && (atoi(twitchStreamResponse["data"][0]["user_id"]) == streamersID) && (JSON.stringify(twitchStreamResponse["data"][0]["type"]) == (const char *)("\"live\"")))
   {
     //if ( (resultLength > 0) && (atoi(twitchStreamResponse["data"][0]["user_id"]) == streamersID ) && (JSON.stringify(twitchStreamResponse["data"][0]["type"]) == (const char*)("\"live\"") )) {
@@ -224,7 +231,7 @@ String httpGETRequest(const char *reqPath, String _auth_h, String _auth_v, Strin
   }
   else if (httpResponseCode == 401)
   {
-    errorState(1);
+    errorState(1, yellow); //yellow
     Serial.printf("Error code: %d\n", httpResponseCode);
     Serial.println("Unauthorized.");
     auth();
@@ -233,7 +240,7 @@ String httpGETRequest(const char *reqPath, String _auth_h, String _auth_v, Strin
   }
   else if (httpResponseCode == 500)
   {
-    errorState(3);
+    errorState(1, red);
     Serial.printf("Error code: %d\n", httpResponseCode);
     Serial.println("Internal Server Error");
     timerDelay = 15 * 60; // try in 15min
@@ -243,7 +250,7 @@ String httpGETRequest(const char *reqPath, String _auth_h, String _auth_v, Strin
   {
     Serial.println("Unexpected... !");
     Serial.printf("Error code: %d\n", httpResponseCode);
-    errorState(NUM_LEDS);
+    errorState(NUM_LEDS, red);
   }
 
   // Free resources
@@ -255,38 +262,27 @@ String httpGETRequest(const char *reqPath, String _auth_h, String _auth_v, Strin
 //=[ LED indication states ]=
 void kitOnline()
 {
-  //for (int x = 0; x < 255; x++) {
-  CHSV color = CHSV(190, 239, 155);
-
-  fill_solid(leds, NUM_LEDS, color);
-
+  fill_solid(leds, NUM_LEDS, orange);
   FastLED.show();
   delay(100);
-  //}
 }
 
 void kitOffline()
 {
-  //memset(leds, 0, NUM_LEDS * 3);
-
   FastLED.clear(true);
-  //leds[INDICAT_LED] = CHSV(197, 240, 144);
-  leds[0] = CHSV(197, 240, 144);
-  //fill_solid(leds, 1, CHSV(197, 240, 144));
+  leds[INDICAT_LED] = boga_c;
   FastLED.show();
 }
 
-void errorState(int num)
+void errorState(int num, CHSV colour)
 {
   FastLED.clear(true);
-  fill_solid(leds, num, CHSV(255, 255, 130));
+  fill_solid(leds, num, colour);
   FastLED.show();
 }
 void poweredOn()
 {
   FastLED.clear(true);
-  //leds[INDICATION_LED
-  leds[INDICAT_LED] = CHSV(72, 213, 100);
-  //fill_solid(leds, 1, CHSV(72, 213, 100));
+  leds[INDICAT_LED] = green;
   FastLED.show();
 }
