@@ -22,7 +22,7 @@ NOTE: The STLs are a small remix of a great design by makkuro [thing:749887](htt
 
 When my fav streamer Kitboga (https://www.twitch.tv/kitboga) comes up live I get notified with all the LEDs lighting up in the stream's colour.
 
-TBA: picture of KIT online
+![Kit-online](https://github.com/pawelowski/KitbogaTwitchStatus/blob/main/photos/KIT_BOGA_online-part.jpg)
 
 When he's offline, only 1 LED over _i_ illuminates.
 
