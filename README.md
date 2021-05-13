@@ -32,10 +32,10 @@ Also error states are displayed.
 
 ### Error Codes
 
-- yellow dot = Unauthorized/Expired keys
-- orange dot = Auth Issue
-- red dot = Internal Server Error
-- ALL red = other unknown request failure (including response `-1`)
+- :yellow_circle: = Unauthorized/Expired keys
+- :orange_circle: = Auth Issue
+- :red_circle: = Internal Server Error
+- :cursing_face: ALL red = other unknown request failure (including response `-1`)
 
 ## Hardware BoM
 
