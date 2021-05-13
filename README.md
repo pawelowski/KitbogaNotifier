@@ -32,9 +32,9 @@ Also error states are displayed.
 
 ### Error Codes
 
-- TBA= Unauthorized/Expired keys
-- TBA red leds = Auth Issue
-- TBA red leds = Internal Server Error
+- yellow dot = Unauthorized/Expired keys
+- orange dot = Auth Issue
+- red dot = Internal Server Error
 - ALL red = other unknown request failure (including response `-1`)
 
 ## Hardware BoM
