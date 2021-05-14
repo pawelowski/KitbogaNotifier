@@ -262,7 +262,7 @@ String httpGETRequest(const char *reqPath, String _auth_h, String _auth_v, Strin
 //=[ LED indication states ]=
 void kitOnline()
 {
-  fill_solid(leds, NUM_LEDS, orange);
+  fill_solid(leds, NUM_LEDS, boga_c);
   FastLED.show();
   delay(100);
 }
