@@ -7,18 +7,12 @@
   Other rescourses used:
   https://randomnerdtutorials.com/esp32-http-get-post-arduino/
 
-  /*
-   Error Codes:
-   # 1 red led = Unauthorized/Expired keys
-   # 2 red leds = Auth Issue
-   # 3 red leds = Internal Server Error
-   # ALL red = other unknown request failure
-
 */
 
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <Arduino_JSON.h>
+
 #include "FastLED.h"
 #if FASTLED_VERSION < 3001000
 #error "Requires FastLED 3.1 or later; check github for latest code."
@@ -38,6 +32,7 @@ CHSV boga_c = CHSV(190, 239, 155);
 CHSV red = CHSV(255, 255, 130);
 CHSV orange = CHSV(23, 233, 120);
 CHSV green = CHSV(72, 213, 100);
+
 // =[ WiFi variables ]=
 const char *ssid = "";
 const char *password = "";
@@ -45,9 +40,14 @@ const char *password = "";
 // =[ Twich Helix API variables ]=
 //URLs
 const char *validateOAuthURL = "https://id.twitch.tv/oauth2/validate";
-const char *searchStreamerURL = "https://api.twitch.tv/helix/streams?user_login=kitboga";
 
-int streamersID = 32787655; //kitboga stream ID
+const char *searchStreamerURL = "https://api.twitch.tv/helix/streams?user_login=kitboga";
+//const char* searchStreamerURL = "https://api.twitch.tv/helix/streams?user_login=cohhcarnage";
+
+//const char* searchChannelURL = "https://api.twitch.tv/helix/search/channels?query=kitboga";
+
+int streamersID = 32787655; //kit
+//int streamersID = 26610234; //cohh
 
 //Tokens
 String clientSecret = "";
@@ -57,7 +57,7 @@ String access_token = "";
 
 // =[ Other variables ]=
 unsigned long lastTime = 0;
-unsigned long timerDelay = 15; //seconds
+unsigned long timerDelay = 60; //seconds
 
 CRGB leds[NUM_LEDS];
 
@@ -251,6 +251,10 @@ String httpGETRequest(const char *reqPath, String _auth_h, String _auth_v, Strin
     Serial.println("Unexpected... !");
     Serial.printf("Error code: %d\n", httpResponseCode);
     errorState(NUM_LEDS, red);
+
+    //wait a 1sec before rebooting the ESP
+    delay(1000);
+    ESP.restart();
   }
 
   // Free resources
