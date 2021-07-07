@@ -4,7 +4,7 @@ Still documenting the repo
 
 # Kitboga Twitch Status
 
-3D-printed sign that shows if the Kitboga streamer is online on Twitch.
+Notification sign for Kitboga status on Twitch.
 
 ### TO DO:
 
