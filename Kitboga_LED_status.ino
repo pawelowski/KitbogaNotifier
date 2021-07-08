@@ -6,8 +6,10 @@
 
   Other rescourses used:
   https://randomnerdtutorials.com/esp32-http-get-post-arduino/
+  https://www.tweaking4all.com/hardware/arduino/adruino-led-strip-effects/#LEDStripEffectTheatreChase
 
 */
+const String VER = "1.13";
 
 #include <WiFi.h>
 #include <HTTPClient.h>
@@ -22,10 +24,10 @@
 #define DATA_PIN 2
 #define LED_TYPE WS2811
 #define COLOR_ORDER GRB
-#define NUM_LEDS 60    //total number of used LEDs
+#define NUM_LEDS 29    //total number of used LEDs=60, KIT=29
 #define INDICAT_LED 18 // the dot over letter i
 #define BRIGHTNESS 120
-const String VER = "1.12";
+
 //Colour definitions
 CHSV yellow = CHSV(40, 240, 120);
 CHSV boga_c = CHSV(190, 239, 155);
@@ -35,8 +37,8 @@ CHSV green = CHSV(72, 213, 100);
 CHSV teal = CHSV(140, 240, 120);
 
 // =[ WiFi variables ]=
-const char *ssid = " ";
-const char *password = " ";
+const char *ssid = "";
+const char *password = "";
 
 // =[ Twich Helix API variables ]=
 //URLs
@@ -51,14 +53,15 @@ String broadcast_login = "kitboga";
 //int streamersID = 26610234; //cohh
 
 //Tokens
-String clientSecret = " ";
-String clientID = " ";
+String clientSecret = "";
+String clientID = "";
 String authURL = "https://id.twitch.tv/oauth2/token?client_id=" + clientID + "&client_secret=" + clientSecret + "&grant_type=client_credentials";
-String access_token = " ";
+String access_token = "";
 
 // =[ Other variables ]=
 unsigned long lastTime = 0;
 unsigned long timerDelay = 60; //seconds
+bool hasBeenOnline = false;
 
 CRGB leds[NUM_LEDS];
 
@@ -101,6 +104,8 @@ void loop()
       {
         if (searchStream())
         {
+          if (!hasBeenOnline)
+            introTrail();
           kitOnline();
         }
         else if (searchChannel())
@@ -108,8 +113,11 @@ void loop()
           kitRerun();
         }
         else
+        {
           kitOffline();
-      } // otherwise, keep displaying the indication state based on the http request result
+        }
+      }
+      // otherwise, keep displaying the indication state based on the http request result
 
       //auth(); //for debugging: check your auth separtely
     }
@@ -305,6 +313,7 @@ String httpGETRequest(const char *reqPath, String _auth_h, String _auth_v, Strin
 //=[ LED indication states ]=
 void kitOnline()
 {
+  hasBeenOnline = true;
   Serial.println("=^= KIT IS LIVE POOPERS !!! GATHER AROUND! =^=");
   fill_solid(leds, NUM_LEDS, boga_c);
   FastLED.show();
@@ -342,4 +351,42 @@ void poweredOn()
   FastLED.clear(true);
   leds[INDICAT_LED] = green;
   FastLED.show();
+}
+
+void introTrail()
+{
+  //(colour, length, decay, randomnes in decay, drawing speed delay)
+  meteorRain(boga_c, 4, 64, true, 60);
+}
+//The bellow code if total copy from https://www.tweaking4all.com/ (full link at the top of the code)
+void meteorRain(CHSV colour, byte meteorSize, byte meteorTrailDecay, boolean meteorRandomDecay, int SpeedDelay)
+{
+  FastLED.clear(true);
+
+  for (int i = 0; i < NUM_LEDS + NUM_LEDS; i++)
+  {
+    // fade brightness all LEDs one step
+    for (int j = 0; j < NUM_LEDS; j++)
+    {
+      if ((!meteorRandomDecay) || (random(10) > 5))
+      {
+        fadeToBlack(j, meteorTrailDecay);
+      }
+    }
+    // draw meteor
+    for (int j = 0; j < meteorSize; j++)
+    {
+      if ((i - j < NUM_LEDS) && (i - j >= 0))
+      {
+        leds[i - j] = colour;
+      }
+    }
+    FastLED.show();
+    delay(SpeedDelay);
+  }
+}
+
+void fadeToBlack(int ledNo, byte fadeValue)
+{
+  leds[ledNo].fadeToBlackBy(fadeValue);
 }
