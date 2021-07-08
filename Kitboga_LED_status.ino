@@ -25,17 +25,18 @@
 #define NUM_LEDS 60    //total number of used LEDs
 #define INDICAT_LED 18 // the dot over letter i
 #define BRIGHTNESS 120
-
+const String VER = "1.12";
 //Colour definitions
 CHSV yellow = CHSV(40, 240, 120);
 CHSV boga_c = CHSV(190, 239, 155);
 CHSV red = CHSV(255, 255, 130);
 CHSV orange = CHSV(23, 233, 120);
 CHSV green = CHSV(72, 213, 100);
+CHSV teal = CHSV(140, 240, 120);
 
 // =[ WiFi variables ]=
-const char *ssid = "";
-const char *password = "";
+const char *ssid = " ";
+const char *password = " ";
 
 // =[ Twich Helix API variables ]=
 //URLs
@@ -43,17 +44,17 @@ const char *validateOAuthURL = "https://id.twitch.tv/oauth2/validate";
 
 const char *searchStreamerURL = "https://api.twitch.tv/helix/streams?user_login=kitboga";
 //const char* searchStreamerURL = "https://api.twitch.tv/helix/streams?user_login=cohhcarnage";
-
-//const char* searchChannelURL = "https://api.twitch.tv/helix/search/channels?query=kitboga";
+const char *searchChannelURL = "https://api.twitch.tv/helix/search/channels?query=kitboga";
 
 int streamersID = 32787655; //kit
+String broadcast_login = "kitboga";
 //int streamersID = 26610234; //cohh
 
 //Tokens
-String clientSecret = "";
-String clientID = "";
+String clientSecret = " ";
+String clientID = " ";
 String authURL = "https://id.twitch.tv/oauth2/token?client_id=" + clientID + "&client_secret=" + clientSecret + "&grant_type=client_credentials";
-String access_token = "";
+String access_token = " ";
 
 // =[ Other variables ]=
 unsigned long lastTime = 0;
@@ -79,10 +80,9 @@ void setup()
   Serial.println("");
   Serial.print("Connected to WiFi network with IP Address: ");
   Serial.println(WiFi.localIP());
+  Serial.printf(">> FW Version: %s\n", VER);
 
-  //Make the 1st requests, don't wait for the interval of "timerDelay" variable
   validate();
-  searchStream();
 }
 
 void loop()
@@ -91,20 +91,32 @@ void loop()
   //Send an HTTP POST request every 'timerDelay' value
   if ((millis() - lastTime) > timerDelay * 1000)
   {
-    //Check WiFi connection status
     if (WiFi.status() == WL_CONNECTED)
     {
 
-      // if validation successful, go and search the stream up
+      // if validation successful, check if streamer is live,
+      // if not, then if re-run is shown,
+      // otherwise offline
       if (validate())
-        searchStream();
-      // otherwise, keep displaying the indication state based on the http request result
+      {
+        if (searchStream())
+        {
+          kitOnline();
+        }
+        else if (searchChannel())
+        {
+          kitRerun();
+        }
+        else
+          kitOffline();
+      } // otherwise, keep displaying the indication state based on the http request result
 
       //auth(); //for debugging: check your auth separtely
     }
     else
     {
       Serial.println("WiFi Disconnected");
+      errorState(1, teal);
     }
     lastTime = millis();
   }
@@ -157,10 +169,10 @@ void auth()
     //I couldn't figure out how to extract characters from inside of " ", so I just chop them off both ends.
     // Example: access_token = "a1b2c3d4e5f6g7h8i9j1k2l3m4n5o6";
 
-    access_token.remove(0, 1); //remove 1st " (character 0)
+    access_token.remove(0, 1); //remove 1st ' " ' (character 0)
     //Serial.printf("Access token lenght: %d\n", access_token.length());
-    access_token.remove(access_token.length() - 1, 1); //remove last " (character lenght - 1)
-    //Serial.printf("Access Token: %s\n", access_token); // for debugging
+    access_token.remove(access_token.length() - 1, 1);                //remove last ' " ' (character lenght - 1)
+    Serial.printf("Access Token:\t>>%s<<\n", (String)(access_token)); // for debugging
   }
   else
   {
@@ -170,8 +182,9 @@ void auth()
   http.end();
 }
 
-void searchStream()
+bool searchStream()
 {
+  bool isLive;
   //Look up streamers based on their user_login (can do multiple at a time). See 'searchStreamerURL' variable
   Serial.print("Looking up stream... ");
   JSONVar twitchStreamResponse = JSON.parse(httpGETRequest(searchStreamerURL, "Authorization", access_token, "Client-Id", clientID));
@@ -180,19 +193,48 @@ void searchStream()
     Serial.println("Parsing input failed!");
   }
 
-  //int resultLength = twitchStreamResponse["data"].length();
-
   if ((int(twitchStreamResponse["data"].length()) > 0) && (atoi(twitchStreamResponse["data"][0]["user_id"]) == streamersID) && (JSON.stringify(twitchStreamResponse["data"][0]["type"]) == (const char *)("\"live\"")))
   {
-    //if ( (resultLength > 0) && (atoi(twitchStreamResponse["data"][0]["user_id"]) == streamersID ) && (JSON.stringify(twitchStreamResponse["data"][0]["type"]) == (const char*)("\"live\"") )) {
-    Serial.println("=^= KIT IS LIVE BITCHES !!! GATHER AROUND! =^=");
-    kitOnline();
+    isLive = true;
   }
   else
   {
-    Serial.println("KIT IS OFFILINE =[");
-    kitOffline();
+    isLive = false;
   }
+  return isLive;
+}
+
+bool searchChannel()
+{
+  bool reRunStatus;
+  //Search all Twitch channels based on a term. See 'searchChannelURL' variable
+  Serial.print("Searching channels... ");
+  JSONVar twitchStreamResponse = JSON.parse(httpGETRequest(searchChannelURL, "Authorization", access_token, "Client-Id", clientID));
+  if (JSON.typeof(twitchStreamResponse) == "undefined")
+  {
+    Serial.println("Parsing input failed!");
+  }
+
+  //int resultLength = twitchStreamResponse["data"].length(); //for debugging
+  //Serial.printf("Result length: %d\n", resultLength);
+
+  if ((int(twitchStreamResponse["data"].length()) > 0) && (JSON.stringify(twitchStreamResponse["data"][0]["broadcaster_login"]) == (const char *)("\"kitboga\"")))
+  {
+    if (JSON.stringify(twitchStreamResponse["data"][0]["is_live"]) == (const char *)("true"))
+    {
+      reRunStatus = true;
+    }
+    else
+    {
+      reRunStatus = false;
+    }
+  }
+  else
+  {
+    Serial.println("Can't find the channel");
+    //kitOffline();
+  }
+  return reRunStatus;
 }
 
 JSONVar parseJson(String _stringResult)
@@ -251,12 +293,9 @@ String httpGETRequest(const char *reqPath, String _auth_h, String _auth_v, Strin
     Serial.println("Unexpected... !");
     Serial.printf("Error code: %d\n", httpResponseCode);
     errorState(NUM_LEDS, red);
-
-    //wait a 1sec before rebooting the ESP
     delay(1000);
     ESP.restart();
   }
-
   // Free resources
   http.end();
 
@@ -266,13 +305,27 @@ String httpGETRequest(const char *reqPath, String _auth_h, String _auth_v, Strin
 //=[ LED indication states ]=
 void kitOnline()
 {
+  Serial.println("=^= KIT IS LIVE POOPERS !!! GATHER AROUND! =^=");
   fill_solid(leds, NUM_LEDS, boga_c);
+  FastLED.show();
+  delay(100);
+}
+
+void kitRerun()
+{
+  Serial.println("[ $ ] WeeeWooo IT's A Re-RUN !!! [ $ ]");
+  FastLED.clear(true);
+  for (int k = 0; k < 14; k++)
+  {
+    leds[k] = boga_c;
+  }
   FastLED.show();
   delay(100);
 }
 
 void kitOffline()
 {
+  Serial.println("KIT IS OFFILINE =[");
   FastLED.clear(true);
   leds[INDICAT_LED] = boga_c;
   FastLED.show();
