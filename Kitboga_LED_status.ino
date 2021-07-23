@@ -9,11 +9,12 @@
   https://www.tweaking4all.com/hardware/arduino/adruino-led-strip-effects/#LEDStripEffectTheatreChase
 
 */
-const String VER = "1.13";
+const String VER = "1.14";
 
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <Arduino_JSON.h>
+#include "config.h"
 
 #include "FastLED.h"
 #if FASTLED_VERSION < 3001000
@@ -37,8 +38,8 @@ CHSV green = CHSV(72, 213, 100);
 CHSV teal = CHSV(140, 240, 120);
 
 // =[ WiFi variables ]=
-const char *ssid = "";
-const char *password = "";
+const char *ssid = " ";
+const char *password = " ";
 
 // =[ Twich Helix API variables ]=
 //URLs
@@ -53,15 +54,16 @@ String broadcast_login = "kitboga";
 //int streamersID = 26610234; //cohh
 
 //Tokens
-String clientSecret = "";
-String clientID = "";
+String clientSecret = " ";
+String clientID = " ";
 String authURL = "https://id.twitch.tv/oauth2/token?client_id=" + clientID + "&client_secret=" + clientSecret + "&grant_type=client_credentials";
-String access_token = "";
+String access_token = " ";
 
 // =[ Other variables ]=
-unsigned long lastTime = 0;
+unsigned long lastTime = 0;    //used for timer
 unsigned long timerDelay = 60; //seconds
-bool hasBeenOnline = false;
+bool hasBeenOnline = false;    //used to run the trail effect only for the 1st time after checking if online
+bool firstBoot = true;         //used to run the checkStatus() straight after boot to omit timer once
 
 CRGB leds[NUM_LEDS];
 
@@ -84,12 +86,16 @@ void setup()
   Serial.print("Connected to WiFi network with IP Address: ");
   Serial.println(WiFi.localIP());
   Serial.printf(">> FW Version: %s\n", VER);
-
-  validate();
 }
 
 void loop()
 {
+  if (firstBoot)
+  {
+    Serial.println("First time check after boot...");
+    checkStatus();
+    firstBoot = false;
+  }
 
   //Send an HTTP POST request every 'timerDelay' value
   if ((millis() - lastTime) > timerDelay * 1000)
@@ -100,23 +106,7 @@ void loop()
       // if validation successful, check if streamer is live,
       // if not, then if re-run is shown,
       // otherwise offline
-      if (validate())
-      {
-        if (searchStream())
-        {
-          if (!hasBeenOnline)
-            introTrail();
-          kitOnline();
-        }
-        else if (searchChannel())
-        {
-          kitRerun();
-        }
-        else
-        {
-          kitOffline();
-        }
-      }
+      checkStatus();
       // otherwise, keep displaying the indication state based on the http request result
 
       //auth(); //for debugging: check your auth separtely
@@ -131,6 +121,26 @@ void loop()
 }
 
 //=[ Functions ]=
+void checkStatus()
+{
+  if (validate())
+  {
+    if (searchStream())
+    {
+      if (!hasBeenOnline)
+        introTrail();
+      kitOnline();
+    }
+    else if (searchChannel())
+    {
+      kitRerun();
+    }
+    else
+    {
+      kitOffline();
+    }
+  }
+}
 bool validate()
 {
   //Checks if access token is valid before making a request
@@ -145,7 +155,7 @@ bool validate()
   }
   else
     valid = false;
-  Serial.printf("Keys valid for: %d sec \n", validTime);
+  Serial.printf("\nKeys valid for: %d sec \n", validTime);
   delay(500);
   return valid;
 }
@@ -194,7 +204,7 @@ bool searchStream()
 {
   bool isLive;
   //Look up streamers based on their user_login (can do multiple at a time). See 'searchStreamerURL' variable
-  Serial.print("Looking up stream... ");
+  Serial.print("Looking for a live stream... ");
   JSONVar twitchStreamResponse = JSON.parse(httpGETRequest(searchStreamerURL, "Authorization", access_token, "Client-Id", clientID));
   if (JSON.typeof(twitchStreamResponse) == "undefined")
   {
@@ -208,6 +218,7 @@ bool searchStream()
   else
   {
     isLive = false;
+    Serial.print(" -> [ No Live Stream ]\n");
   }
   return isLive;
 }
@@ -216,7 +227,7 @@ bool searchChannel()
 {
   bool reRunStatus;
   //Search all Twitch channels based on a term. See 'searchChannelURL' variable
-  Serial.print("Searching channels... ");
+  Serial.print("Searching channels for a re-run... ");
   JSONVar twitchStreamResponse = JSON.parse(httpGETRequest(searchChannelURL, "Authorization", access_token, "Client-Id", clientID));
   if (JSON.typeof(twitchStreamResponse) == "undefined")
   {
@@ -235,12 +246,12 @@ bool searchChannel()
     else
     {
       reRunStatus = false;
+      Serial.print(" -> [ No Re-runs ]\n");
     }
   }
   else
   {
     Serial.println("Can't find the channel");
-    //kitOffline();
   }
   return reRunStatus;
 }
@@ -274,7 +285,7 @@ String httpGETRequest(const char *reqPath, String _auth_h, String _auth_v, Strin
   // ALL GOOD.
   if (httpResponseCode == 200)
   {
-    Serial.printf("HTTP Response code: %d\n", httpResponseCode);
+    Serial.printf("HTTP Response code: %d", httpResponseCode);
     payload = http.getString();
 
     // Unauthorized - expired keys, so re-auth.
@@ -314,7 +325,7 @@ String httpGETRequest(const char *reqPath, String _auth_h, String _auth_v, Strin
 void kitOnline()
 {
   hasBeenOnline = true;
-  Serial.println("=^= KIT IS LIVE POOPERS !!! GATHER AROUND! =^=");
+  Serial.println("\\(◦'⌣'◦)/ KIT IS LIVE POOPERS !!! GATHER AROUND! \\(◦'⌣'◦)/");
   fill_solid(leds, NUM_LEDS, boga_c);
   FastLED.show();
   delay(100);
@@ -322,7 +333,7 @@ void kitOnline()
 
 void kitRerun()
 {
-  Serial.println("[ $ ] WeeeWooo IT's A Re-RUN !!! [ $ ]");
+  Serial.println("~(˘▾˘~) WeeeWooo IT's A Re-RUN !!! (~˘▾˘)~");
   FastLED.clear(true);
   for (int k = 0; k < 14; k++)
   {
@@ -334,7 +345,7 @@ void kitRerun()
 
 void kitOffline()
 {
-  Serial.println("KIT IS OFFILINE =[");
+  Serial.println("(x╭╮x) KIT IT IS OFFILINE (x╭╮x)");
   FastLED.clear(true);
   leds[INDICAT_LED] = boga_c;
   FastLED.show();
