@@ -38,8 +38,8 @@ CHSV green = CHSV(72, 213, 100);
 CHSV teal = CHSV(140, 240, 120);
 
 // =[ WiFi variables ]=
-const char *ssid = " ";
-const char *password = " ";
+const char *ssid = "";
+const char *password = "";
 
 // =[ Twich Helix API variables ]=
 //URLs
@@ -52,12 +52,13 @@ const char *searchChannelURL = "https://api.twitch.tv/helix/search/channels?quer
 int streamersID = 32787655; //kit
 String broadcast_login = "kitboga";
 //int streamersID = 26610234; //cohh
+//String broadcast_login = "cohhcarnage";
 
 //Tokens
-String clientSecret = " ";
-String clientID = " ";
+String clientSecret = "";
+String clientID = "";
 String authURL = "https://id.twitch.tv/oauth2/token?client_id=" + clientID + "&client_secret=" + clientSecret + "&grant_type=client_credentials";
-String access_token = " ";
+String access_token = "";
 
 // =[ Other variables ]=
 unsigned long lastTime = 0;    //used for timer
@@ -67,7 +68,7 @@ bool firstBoot = true;         //used to run the checkStatus() straight after bo
 
 CRGB leds[NUM_LEDS];
 
-void setup()
+void setup(void)
 {
   Serial.begin(115200);
   FastLED.addLeds<WS2811, DATA_PIN, GRB>(leds, NUM_LEDS);
@@ -88,7 +89,7 @@ void setup()
   Serial.printf(">> FW Version: %s\n", VER);
 }
 
-void loop()
+void loop(void)
 {
   if (firstBoot)
   {
@@ -121,7 +122,7 @@ void loop()
 }
 
 //=[ Functions ]=
-void checkStatus()
+void checkStatus(void)
 {
   if (validate())
   {
@@ -141,7 +142,7 @@ void checkStatus()
     }
   }
 }
-bool validate()
+bool validate(void)
 {
   //Checks if access token is valid before making a request
   Serial.print("Validating... ");
@@ -160,7 +161,7 @@ bool validate()
   return valid;
 }
 
-void auth()
+void auth(void)
 {
   //Request a new access token to make a call to the API's endpoints
   Serial.print("Authing... ");
@@ -200,7 +201,7 @@ void auth()
   http.end();
 }
 
-bool searchStream()
+bool searchStream(void)
 {
   bool isLive;
   //Look up streamers based on their user_login (can do multiple at a time). See 'searchStreamerURL' variable
@@ -223,7 +224,7 @@ bool searchStream()
   return isLive;
 }
 
-bool searchChannel()
+bool searchChannel(void)
 {
   bool reRunStatus;
   //Search all Twitch channels based on a term. See 'searchChannelURL' variable
@@ -322,7 +323,7 @@ String httpGETRequest(const char *reqPath, String _auth_h, String _auth_v, Strin
 }
 
 //=[ LED indication states ]=
-void kitOnline()
+void kitOnline(void)
 {
   hasBeenOnline = true;
   Serial.println("\\(◦'⌣'◦)/ KIT IS LIVE POOPERS !!! GATHER AROUND! \\(◦'⌣'◦)/");
@@ -331,7 +332,7 @@ void kitOnline()
   delay(100);
 }
 
-void kitRerun()
+void kitRerun(void)
 {
   Serial.println("~(˘▾˘~) WeeeWooo IT's A Re-RUN !!! (~˘▾˘)~");
   FastLED.clear(true);
@@ -343,7 +344,7 @@ void kitRerun()
   delay(100);
 }
 
-void kitOffline()
+void kitOffline(void)
 {
   Serial.println("(x╭╮x) KIT IT IS OFFILINE (x╭╮x)");
   FastLED.clear(true);
@@ -357,14 +358,14 @@ void errorState(int num, CHSV colour)
   fill_solid(leds, num, colour);
   FastLED.show();
 }
-void poweredOn()
+void poweredOn(void)
 {
   FastLED.clear(true);
   leds[INDICAT_LED] = green;
   FastLED.show();
 }
 
-void introTrail()
+void introTrail(void)
 {
   //(colour, length, decay, randomnes in decay, drawing speed delay)
   meteorRain(boga_c, 4, 64, true, 60);

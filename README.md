@@ -10,8 +10,6 @@ Notification sign for Kitboga status on Twitch.
 
 [ ] save `access_token` to EEPROM memory
 
-[ ] fix error codes
-
 ## Description
 
 Project uses an ESP32 to call the TwitchTV Helix API to check status of Kitboga's stream. The result is displayed on a 3D-printed sign with addressible RGBs and FastLED library.
@@ -32,6 +30,8 @@ Also error states are displayed.
 
 ### Error Codes
 
+- :large_blue_circle: = WIFI disconnected
+- :green_circle: = power ON
 - :yellow_circle: = Unauthorized/Expired keys
 - :orange_circle: = Auth Issue
 - :red_circle: = Internal Server Error
