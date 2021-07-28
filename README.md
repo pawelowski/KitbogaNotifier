@@ -60,14 +60,15 @@ Also error states are displayed.
 
 ## API setup
 
-1. created a Twitch developer account to obtain access keys https://dev.twitch.tv/docs/api/
+1. Created a Twitch developer account to obtain access keys https://dev.twitch.tv/docs/api/
+2. In Arduino IDE, fille`clientID` & `clientSecret` accordingly.
 
-2. in Arduino IDE, filled `clientID` & `clientSecret` accordingly. Line #156 to prints auth token in Serial Monitor.
-   Uploaded code to the the μC.
+3. To obtain access token you can use Postman (see [Twich Helix API OAuth client credentials flow](https://dev.twitch.tv/docs/authentication/getting-tokens-oauth#oauth-client-credentials-flow)) or bellow step:
 
-NOTE: Also used programes clients like Postman or Insomnia to preview the token myself.
+- Uncomment line `Serial.printf("Access Token: %s\n", access_token);` which is in function `validate()`. This prints auth token in Serial Monitor. Upload the code to the the μC.
+- Open serial monitor and grab the auth token. Paste it under variable `access_token` and re-upload the code.
 
-3. Auth token was generated from the API and printed in the Serial Monitor. Grabed it and pasted to `access_token` in Arduino IDE (it lasts for around 60 days, this prevents creating a new one when I often power cycle the device in early stages). Commented back the #156 line, re-uploaded the code with a valid `auth_token`.
+4. The auth token lasts for around 60 days and will be renewed automatically.
 
 Erros are shown in the Serial Monitor for debugging. Further lines from the code can be uncommented to print important variables.
 
