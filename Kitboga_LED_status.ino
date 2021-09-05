@@ -9,12 +9,11 @@
   https://www.tweaking4all.com/hardware/arduino/adruino-led-strip-effects/#LEDStripEffectTheatreChase
 
 */
-const String VER = "1.14";
+const String VER = "1.16";
 
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <Arduino_JSON.h>
-#include "config.h"
 
 #include "FastLED.h"
 #if FASTLED_VERSION < 3001000
@@ -22,43 +21,43 @@ const String VER = "1.14";
 #endif
 
 // LED setup variables
-#define DATA_PIN 2
-#define LED_TYPE WS2811
+#define DATA_PIN    2
+#define LED_TYPE    WS2811
 #define COLOR_ORDER GRB
-#define NUM_LEDS 29    //total number of used LEDs=60, KIT=29
-#define INDICAT_LED 18 // the dot over letter i
-#define BRIGHTNESS 120
+#define NUM_LEDS    29    //total number of used LEDs=60, KIT=29
+#define INDICAT_LED 18    // the dot over letter i
+#define BRIGHTNESS  120
 
 //Colour definitions
-CHSV yellow = CHSV(40, 240, 120);
-CHSV boga_c = CHSV(190, 239, 155);
-CHSV red = CHSV(255, 255, 130);
-CHSV orange = CHSV(23, 233, 120);
-CHSV green = CHSV(72, 213, 100);
-CHSV teal = CHSV(140, 240, 120);
+CRGB boga_c = CRGB(99, 6, 171);
+CRGB red = CRGB(201, 0, 0);
+CRGB orange = CRGB(255, 85, 5);
+CRGB green = CRGB(26, 110, 3);
+CRGB teal = CRGB(10, 170, 173);
+CRGB blue = CRGB(25, 8, 207);
 
 // =[ WiFi variables ]=
-const char *ssid = "";
-const char *password = "";
+const char* ssid     = "";
+const char* password = "";
 
 // =[ Twich Helix API variables ]=
 //URLs
-const char *validateOAuthURL = "https://id.twitch.tv/oauth2/validate";
+const char* validateOAuthURL = "https://id.twitch.tv/oauth2/validate";
 
-const char *searchStreamerURL = "https://api.twitch.tv/helix/streams?user_login=kitboga";
+const char* searchStreamerURL = "https://api.twitch.tv/helix/streams?user_login=kitboga";
 //const char* searchStreamerURL = "https://api.twitch.tv/helix/streams?user_login=cohhcarnage";
-const char *searchChannelURL = "https://api.twitch.tv/helix/search/channels?query=kitboga";
+const char* searchChannelURL = "https://api.twitch.tv/helix/search/channels?query=kitboga";
 
 int streamersID = 32787655; //kit
 String broadcast_login = "kitboga";
 //int streamersID = 26610234; //cohh
-//String broadcast_login = "cohhcarnage";
 
 //Tokens
 String clientSecret = "";
 String clientID = "";
 String authURL = "https://id.twitch.tv/oauth2/token?client_id=" + clientID + "&client_secret=" + clientSecret + "&grant_type=client_credentials";
 String access_token = "";
+
 
 // =[ Other variables ]=
 unsigned long lastTime = 0;    //used for timer
@@ -68,8 +67,7 @@ bool firstBoot = true;         //used to run the checkStatus() straight after bo
 
 CRGB leds[NUM_LEDS];
 
-void setup(void)
-{
+void setup() {
   Serial.begin(115200);
   FastLED.addLeds<WS2811, DATA_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(BRIGHTNESS);
@@ -78,8 +76,7 @@ void setup(void)
   poweredOn();
   WiFi.begin(ssid, password);
   Serial.println("Connecting");
-  while (WiFi.status() != WL_CONNECTED)
-  {
+  while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
@@ -89,20 +86,16 @@ void setup(void)
   Serial.printf(">> FW Version: %s\n", VER);
 }
 
-void loop(void)
-{
-  if (firstBoot)
-  {
+void loop() {
+  if (firstBoot) {
     Serial.println("First time check after boot...");
     checkStatus();
     firstBoot = false;
   }
 
   //Send an HTTP POST request every 'timerDelay' value
-  if ((millis() - lastTime) > timerDelay * 1000)
-  {
-    if (WiFi.status() == WL_CONNECTED)
-    {
+  if ((millis() - lastTime) > timerDelay * 1000) {
+    if (WiFi.status() == WL_CONNECTED) {
 
       // if validation successful, check if streamer is live,
       // if not, then if re-run is shown,
@@ -112,8 +105,7 @@ void loop(void)
 
       //auth(); //for debugging: check your auth separtely
     }
-    else
-    {
+    else {
       Serial.println("WiFi Disconnected");
       errorState(1, teal);
     }
@@ -122,47 +114,34 @@ void loop(void)
 }
 
 //=[ Functions ]=
-void checkStatus(void)
-{
-  if (validate())
-  {
-    if (searchStream())
-    {
-      if (!hasBeenOnline)
-        introTrail();
+void checkStatus() {
+  if (validate()) {
+    if (searchStream()) {
+      if (!hasBeenOnline) introTrail();
       kitOnline();
-    }
-    else if (searchChannel())
-    {
+    } else if (searchChannel()) {
       kitRerun();
-    }
-    else
-    {
+    } else {
       kitOffline();
     }
   }
 }
-bool validate(void)
-{
+bool validate() {
   //Checks if access token is valid before making a request
   Serial.print("Validating... ");
   //Serial.printf("Access Token: %s\n", access_token);
   String rawResponse = httpGETRequest(validateOAuthURL, "Authorization", access_token, "", "");
   int validTime = parseJson(rawResponse)["expires_in"];
   bool valid;
-  if (validTime > 0)
-  {
+  if (validTime > 0) {
     valid = true;
-  }
-  else
-    valid = false;
+  } else valid = false;
   Serial.printf("\nKeys valid for: %d sec \n", validTime);
   delay(500);
   return valid;
 }
 
-void auth(void)
-{
+void auth() {
   //Request a new access token to make a call to the API's endpoints
   Serial.print("Authing... ");
   HTTPClient http;
@@ -173,8 +152,7 @@ void auth(void)
   String payload = "{}";
 
   // ALL GOOD
-  if (httpResponseCode == 200)
-  {
+  if (httpResponseCode == 200) {
     Serial.print("HTTP Response code: ");
     Serial.println(httpResponseCode);
     payload = http.getString();
@@ -190,86 +168,68 @@ void auth(void)
 
     access_token.remove(0, 1); //remove 1st ' " ' (character 0)
     //Serial.printf("Access token lenght: %d\n", access_token.length());
-    access_token.remove(access_token.length() - 1, 1);                //remove last ' " ' (character lenght - 1)
+    access_token.remove(access_token.length() - 1, 1); //remove last ' " ' (character lenght - 1)
     Serial.printf("Access Token:\t>>%s<<\n", (String)(access_token)); // for debugging
-  }
-  else
-  {
+  } else {
     Serial.print("Auth Issue");
     errorState(1, orange);
   }
   http.end();
 }
 
-bool searchStream(void)
-{
+bool searchStream() {
   bool isLive;
   //Look up streamers based on their user_login (can do multiple at a time). See 'searchStreamerURL' variable
   Serial.print("Looking for a live stream... ");
   JSONVar twitchStreamResponse = JSON.parse(httpGETRequest(searchStreamerURL, "Authorization", access_token, "Client-Id", clientID));
-  if (JSON.typeof(twitchStreamResponse) == "undefined")
-  {
+  if (JSON.typeof(twitchStreamResponse) == "undefined") {
     Serial.println("Parsing input failed!");
   }
 
-  if ((int(twitchStreamResponse["data"].length()) > 0) && (atoi(twitchStreamResponse["data"][0]["user_id"]) == streamersID) && (JSON.stringify(twitchStreamResponse["data"][0]["type"]) == (const char *)("\"live\"")))
-  {
+  if ((int(twitchStreamResponse["data"].length()) > 0) && (atoi(twitchStreamResponse["data"][0]["user_id"]) == streamersID ) && (JSON.stringify(twitchStreamResponse["data"][0]["type"]) == (const char*)("\"live\"") )) {
     isLive = true;
-  }
-  else
-  {
+  } else {
     isLive = false;
     Serial.print(" -> [ No Live Stream ]\n");
   }
   return isLive;
 }
 
-bool searchChannel(void)
-{
+bool searchChannel() {
   bool reRunStatus;
   //Search all Twitch channels based on a term. See 'searchChannelURL' variable
   Serial.print("Searching channels for a re-run... ");
   JSONVar twitchStreamResponse = JSON.parse(httpGETRequest(searchChannelURL, "Authorization", access_token, "Client-Id", clientID));
-  if (JSON.typeof(twitchStreamResponse) == "undefined")
-  {
+  if (JSON.typeof(twitchStreamResponse) == "undefined") {
     Serial.println("Parsing input failed!");
   }
 
   //int resultLength = twitchStreamResponse["data"].length(); //for debugging
   //Serial.printf("Result length: %d\n", resultLength);
 
-  if ((int(twitchStreamResponse["data"].length()) > 0) && (JSON.stringify(twitchStreamResponse["data"][0]["broadcaster_login"]) == (const char *)("\"kitboga\"")))
-  {
-    if (JSON.stringify(twitchStreamResponse["data"][0]["is_live"]) == (const char *)("true"))
-    {
+  if ((int(twitchStreamResponse["data"].length()) > 0) && (JSON.stringify(twitchStreamResponse["data"][0]["broadcaster_login"]) == (const char*)("\"kitboga\"") ) ) {
+    if (JSON.stringify(twitchStreamResponse["data"][0]["is_live"]) == (const char*)("true")) {
       reRunStatus = true;
-    }
-    else
-    {
+    } else {
       reRunStatus = false;
       Serial.print(" -> [ No Re-runs ]\n");
     }
-  }
-  else
-  {
+  } else {
     Serial.println("Can't find the channel");
   }
   return reRunStatus;
 }
 
-JSONVar parseJson(String _stringResult)
-{
+JSONVar parseJson(String _stringResult) {
   JSONVar twitchResponse = JSON.parse(_stringResult);
-  if (JSON.typeof(twitchResponse) == "undefined")
-  {
+  if (JSON.typeof(twitchResponse) == "undefined") {
     Serial.println("Parsing input failed!");
     //    return;
   }
   return twitchResponse;
 }
 
-String httpGETRequest(const char *reqPath, String _auth_h, String _auth_v, String _c_id_h, String _c_id_v)
-{
+String httpGETRequest(const char* reqPath, String _auth_h, String _auth_v, String _c_id_h, String _c_id_v) {
 
   HTTPClient http;
   http.begin(reqPath);
@@ -284,32 +244,25 @@ String httpGETRequest(const char *reqPath, String _auth_h, String _auth_v, Strin
   String payload = "{}";
 
   // ALL GOOD.
-  if (httpResponseCode == 200)
-  {
+  if (httpResponseCode == 200) {
     Serial.printf("HTTP Response code: %d", httpResponseCode);
     payload = http.getString();
 
     // Unauthorized - expired keys, so re-auth.
-  }
-  else if (httpResponseCode == 401)
-  {
-    errorState(1, yellow); //yellow
+  } else if (httpResponseCode == 401) {
+    errorState(1, blue); 
     Serial.printf("Error code: %d\n", httpResponseCode);
     Serial.println("Unauthorized.");
     auth();
 
     //Internal Server Error.
-  }
-  else if (httpResponseCode == 500)
-  {
+  }  else if (httpResponseCode == 500) {
     errorState(1, red);
     Serial.printf("Error code: %d\n", httpResponseCode);
     Serial.println("Internal Server Error");
     timerDelay = 15 * 60; // try in 15min
     Serial.printf("Will try next in %d sec\n", timerDelay);
-  }
-  else
-  {
+  } else {
     Serial.println("Unexpected... !");
     Serial.printf("Error code: %d\n", httpResponseCode);
     errorState(NUM_LEDS, red);
@@ -323,8 +276,7 @@ String httpGETRequest(const char *reqPath, String _auth_h, String _auth_v, Strin
 }
 
 //=[ LED indication states ]=
-void kitOnline(void)
-{
+void kitOnline() {
   hasBeenOnline = true;
   Serial.println("\\(◦'⌣'◦)/ KIT IS LIVE POOPERS !!! GATHER AROUND! \\(◦'⌣'◦)/");
   fill_solid(leds, NUM_LEDS, boga_c);
@@ -332,64 +284,52 @@ void kitOnline(void)
   delay(100);
 }
 
-void kitRerun(void)
-{
+void kitRerun() {
   Serial.println("~(˘▾˘~) WeeeWooo IT's A Re-RUN !!! (~˘▾˘)~");
   FastLED.clear(true);
-  for (int k = 0; k < 14; k++)
-  {
+  for (int k = 0; k < 14; k++) {
     leds[k] = boga_c;
   }
   FastLED.show();
   delay(100);
 }
 
-void kitOffline(void)
-{
+void kitOffline() {
   Serial.println("(x╭╮x) KIT IT IS OFFILINE (x╭╮x)");
   FastLED.clear(true);
   leds[INDICAT_LED] = boga_c;
   FastLED.show();
 }
 
-void errorState(int num, CHSV colour)
-{
+void errorState(int num, CRGB colour) {
   FastLED.clear(true);
   fill_solid(leds, num, colour);
   FastLED.show();
 }
-void poweredOn(void)
-{
+void poweredOn() {
   FastLED.clear(true);
   leds[INDICAT_LED] = green;
   FastLED.show();
 }
 
-void introTrail(void)
-{
+void introTrail() {
   //(colour, length, decay, randomnes in decay, drawing speed delay)
   meteorRain(boga_c, 4, 64, true, 60);
 }
 //The bellow code if total copy from https://www.tweaking4all.com/ (full link at the top of the code)
-void meteorRain(CHSV colour, byte meteorSize, byte meteorTrailDecay, boolean meteorRandomDecay, int SpeedDelay)
-{
+void meteorRain(CRGB colour , byte meteorSize, byte meteorTrailDecay, boolean meteorRandomDecay, int SpeedDelay) {
   FastLED.clear(true);
 
-  for (int i = 0; i < NUM_LEDS + NUM_LEDS; i++)
-  {
+  for (int i = 0; i < NUM_LEDS + NUM_LEDS; i++) {
     // fade brightness all LEDs one step
-    for (int j = 0; j < NUM_LEDS; j++)
-    {
-      if ((!meteorRandomDecay) || (random(10) > 5))
-      {
-        fadeToBlack(j, meteorTrailDecay);
+    for (int j = 0; j < NUM_LEDS; j++) {
+      if ( (!meteorRandomDecay) || (random(10) > 5) ) {
+        fadeToBlack(j, meteorTrailDecay );
       }
     }
     // draw meteor
-    for (int j = 0; j < meteorSize; j++)
-    {
-      if ((i - j < NUM_LEDS) && (i - j >= 0))
-      {
+    for (int j = 0; j < meteorSize; j++) {
+      if ( ( i - j < NUM_LEDS) && (i - j >= 0) ) {
         leds[i - j] = colour;
       }
     }
@@ -398,7 +338,6 @@ void meteorRain(CHSV colour, byte meteorSize, byte meteorTrailDecay, boolean met
   }
 }
 
-void fadeToBlack(int ledNo, byte fadeValue)
-{
-  leds[ledNo].fadeToBlackBy(fadeValue);
+void fadeToBlack(int ledNo, byte fadeValue) {
+  leds[ledNo].fadeToBlackBy( fadeValue );
 }

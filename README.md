@@ -14,27 +14,29 @@ Notification sign for Kitboga status on Twitch.
 
 Project uses an ESP32 to call the TwitchTV Helix API to check status of Kitboga's stream. The result is displayed on a 3D-printed sign with addressible RGBs and FastLED library.
 
+![](photos/KitBoga_Show_demo.gif)
+
 NOTE: The STLs are a small remix of a great design by makkuro [thing:749887](https://www.thingiverse.com/thing:749887).
 
 # Details
 
 When my fav streamer Kitboga (https://www.twitch.tv/kitboga) comes up live I get notified with all the LEDs lighting up in the stream's colour.
 
-![Kit-online](https://github.com/pawelowski/KitbogaTwitchStatus/blob/main/photos/KIT_BOGA_online-part.jpg)
+![Kit-online](photos/KIT_BOGA_online-part.jpg)
 
 When he's offline, only 1 LED over _i_ illuminates.
 
-![Kit-offline](https://github.com/pawelowski/KitbogaTwitchStatus/blob/main/photos/KIT_offline.jpg)
+![Kit-offline](photos/KIT_offline.jpg)
 
 Also error states are displayed.
 
 ### Error Codes
 
-- :large_blue_circle: = WIFI disconnected
-- :green_circle: = power ON
-- :yellow_circle: = Unauthorized/Expired keys
-- :orange_circle: = Auth Issue
-- :red_circle: = Internal Server Error
+- ![#059105](https://via.placeholder.com/15/059105/000000?text=+) = Power ON
+- ![#00C1FC](https://via.placeholder.com/15/00C1FC/000000?text=+) = Unauthorized/Expired keys
+- ![#FC9700](https://via.placeholder.com/15/FC9700/000000?text=+) = Auth Issue
+- ![#f03c15](https://via.placeholder.com/15/f03c15/000000?text=+) = Internal Server Error
+- ![#1F2EFF](https://via.placeholder.com/15/1F2EFF/000000?text=+) = WiFi Disconnected
 - :cursing_face: ALL red = other unknown request failure (including response `-1`)
 
 ## Hardware BoM
@@ -53,9 +55,8 @@ Also error states are displayed.
 
 ## ESP32 setup
 
-![circuit_diagram](https://github.com/pawelowski/KitbogaTwitchStatus/blob/main/photos/circuit_diagram.JPG)
+![circuit_diagram](photos/circuit_diagram.JPG)
 
-- diode D1 provents power being drawn from the ESP32
 - capacitor C1 fixes [Timed out waiting for packet header](https://randomnerdtutorials.com/solved-failed-to-connect-to-esp32-timed-out-waiting-for-packet-header/)
 
 ## API setup
@@ -74,8 +75,8 @@ Erros are shown in the Serial Monitor for debugging. Further lines from the code
 
 ## STL and printing details
 
-![KiT_STL](https://raw.githubusercontent.com/pawelowski/KitbogaTwitchStatus/main/photos/KiT_SLT_screenshot.JPG?v4&s=1260px)
-![boga_STL](https://raw.githubusercontent.com/pawelowski/KitbogaTwitchStatus/main/photos/boga_STL_screenshot.JPG)
+![KiT_STL](photos/KiT_SLT_screenshot.JPG?v4&s=1260px)
+![boga_STL](photos/boga_STL_screenshot.JPG)
 
 - nothing special here, regular 0.2mm nozzle and low infil 15%
 
@@ -85,4 +86,4 @@ The Twich API requires HTTPS requests. However, I only managed to make this work
 
 # More photos
 
-![](https://github.com/pawelowski/KitbogaTwitchStatus/blob/main/photos/STL_LED_inside.jpg)
+![](photos/STL_LED_inside.jpg)
