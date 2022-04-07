@@ -30,7 +30,7 @@ When he's offline, only 1 LED over _i_ illuminates.
 
 Also error states are displayed.
 
-### Error Codes
+### Indication Codes
 
 - ![#059105](https://via.placeholder.com/15/059105/000000?text=+) = Power ON
 - ![#00C1FC](https://via.placeholder.com/15/00C1FC/000000?text=+) = Unauthorized/Expired keys
@@ -61,8 +61,8 @@ Also error states are displayed.
 
 ## API setup
 
-1. Created a Twitch developer account to obtain access keys https://dev.twitch.tv/docs/api/
-2. In Arduino IDE, filled `clientID` & `clientSecret` accordingly.
+1. Create a Twitch developer account to obtain access keys https://dev.twitch.tv/docs/api/
+2. In Arduino IDE, fill `clientID` & `clientSecret` accordingly.
 
 3. To obtain access token you can use Postman (see [Twich Helix API OAuth client credentials flow](https://dev.twitch.tv/docs/authentication/getting-tokens-oauth#oauth-client-credentials-flow)) or bellow step:
 
