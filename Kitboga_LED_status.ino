@@ -196,7 +196,7 @@ void auth()
           {
             if (BASICLOG)
             {
-              Serial.printf(">>> [HTTPS] POST... failed, error: %s\n", https.errorToString(httpCode).c_str());
+              Serial.printf(">>> [HTTPS] POST... failed, error: %d\n", httpCode);
             }
           }
         }
@@ -204,7 +204,7 @@ void auth()
         {
           if (BASICLOG)
           {
-            Serial.printf(">>> [HTTPS] POST... failed, error: %s\n", https.errorToString(httpCode).c_str());
+            Serial.printf(">>> [HTTPS] POST... failed, error: %d\n", httpCode);
           }
         }
         https.end();
@@ -213,7 +213,7 @@ void auth()
       {
         if (BASICLOG)
         {
-          Serial.printf(">>> [HTTPS] Unable to connect... Auth issue X.X\n");
+          Serial.printf(">>> [HTTPS] Unable to connect... X.X\n");
         }
       }
     }
@@ -457,6 +457,43 @@ bool searchChannel()
   return reRunOn;
 }
 
+bool validate()
+{
+  // Checks if access token is valid before making a request
+  if (BASICLOG)
+  {
+    Serial.println("Validating... ");
+    Serial.print("Access Token: ");
+    Serial.println(access_token);
+  }
+  JSONVar twitchValidateResponse = parseJson(httpsGETRequest(validateOAuthURL, "Authorization", "OAuth ", access_token, "", ""));
+  // Serial.println(parseJson(httpsGETRequest("https://httpbin.org/get", "Authorization", "OAuth ", access_token, "", "")));
+
+  bool valid;
+  if (twitchValidateResponse["client_id"])
+  {
+    int validTime = twitchValidateResponse["expires_in"];
+    if (validTime)
+    {
+      valid = true;
+    }
+    else
+      valid = false;
+    if (BASICLOG)
+    {
+      Serial.printf(" -> Keys valid for: %d sec \n\n", validTime);
+    }
+  }
+  else
+  {
+    if (BASICLOG)
+    {
+      Serial.println(">>> Failed to validate.\n");
+    }
+  }
+  return valid;
+}
+
 bool validate2()
 {
   if (BASICLOG)
@@ -483,7 +520,6 @@ bool validate2()
         String bufferResponse = https.getString();
         if (httpCode > 0)
         {
-          // HTTP header has been send and Server response header has been handled
           if (BASICLOG)
           {
             Serial.printf(">>> [HTTPS] GET... code: %d\n", httpCode);
@@ -558,6 +594,31 @@ bool validate2()
     }
   }
   return valid;
+}
+
+void checkStatus()
+{
+  if (validate())
+  {
+    if (searchStream())
+    {
+      if (!hasBeenOnline)
+        introTrail();
+      kitOnline();
+    }
+    else if (searchChannel())
+    {
+      kitRerun();
+    }
+    else
+    {
+      kitOffline();
+    }
+  }
+  if (BASICLOG)
+  {
+    Serial.printf(">>> Next check in %d seconds.\n", requestDelay);
+  }
 }
 
 void checkStatus2()
@@ -731,10 +792,7 @@ void fadeToBlack(int ledNo, byte fadeValue)
 }
 void testColours()
 {
-  if (BASICLOG)
-  {
-    Serial.println(">>> Testing Colours...");
-  }
+  Serial.println(">>> Testing Colours...");
   CRGB colours[] = {red, orange, green, boga_c, teal, blue, yellow};
   FastLED.clear(true);
   for (int i = 0; i < 7; i++)
