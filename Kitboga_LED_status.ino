@@ -18,6 +18,7 @@
 #include "config.h"
 #include "cert.h"
 #include <Arduino_JSON.h>
+#include <Preferences.h>
 #include "FastLED.h"
 #if FASTLED_VERSION < 3001000
 #error "Requires FastLED 3.1 or later; check github for latest code."
@@ -40,10 +41,10 @@ CRGB teal = CRGB(10, 170, 173);
 CRGB blue = CRGB(10, 35, 207);
 CRGB yellow = CRGB(250, 255, 0);
 
-#define BASICLOG false
+#define BASICLOG true
 #define DEBUG false // detailed debug logs
 
-const String VER = "2.5"; // version of the script
+const String VER = "2.6"; // version of the script
 
 // =[ Twich Helix API variables ]=
 const char *validateOAuthURL = "https://id.twitch.tv/oauth2/validate";
@@ -61,7 +62,7 @@ unsigned long prevT = 0;
 bool state = false;
 bool hasBeenOnline = false;     // used to run the trail effect only for the 1st time after checking if online
 bool DEBUG1 = BASICLOG & DEBUG; // DEBUG will only be enabled if BASICLOG is true in the 1st place
-
+Preferences preferences;
 CRGB leds[NUM_LEDS];
 void setup()
 {
@@ -98,8 +99,8 @@ void setup()
   }
 
   setClock();
-
   setUpDone();
+  loadStoredAuthToken();
 
   checkStatus2();
 }
@@ -152,6 +153,32 @@ void setClock()
   }
 }
 
+void loadStoredAuthToken()
+{
+  preferences.begin("twitch_creds", false);
+  String temp = preferences.getString("auth", "");
+  if (temp != "")
+  {
+    access_token = temp;
+    if (BASICLOG)
+    {
+      Serial.print(">>> Access token loaded from Preferences: ");
+      Serial.println(access_token);
+    }
+  }
+}
+
+void storeNewAuthToken()
+{
+  preferences.begin("twitch_creds", false);
+  preferences.putString("auth", access_token);
+  if (BASICLOG)
+  {
+    Serial.println("Access token saved to Preferences.");
+  }
+  preferences.end();
+}
+
 void auth()
 {
   if (BASICLOG)
@@ -182,14 +209,23 @@ void auth()
             Serial.print(">>> Raw Auth response:");
             Serial.println(payload);
           }
-          if (httpCode == HTTP_CODE_OK)
+          if (httpCode == httpCode)
           {
             JSONVar twitchAuthResponse = parseJson(payload);
 
-            access_token = getAccessToken(twitchAuthResponse);
+            access_token = extractAccessToken(twitchAuthResponse);
             if (BASICLOG)
             {
               Serial.println("  > New access token obtained.");
+            }
+            storeNewAuthToken();
+          }
+          else if (httpCode == 400)
+          {
+            errorState(yellow);
+            if (BASICLOG)
+            {
+              Serial.println(">>> Bad request... Need a new root ca?");
             }
           }
           else
@@ -202,6 +238,7 @@ void auth()
         }
         else
         {
+          redK();
           if (BASICLOG)
           {
             Serial.printf(">>> [HTTPS] POST... failed, error: %d\n", httpCode);
@@ -377,7 +414,7 @@ JSONVar parseJson(String _stringResult)
   return twitchResponse;
 }
 
-String getAccessToken(JSONVar _response)
+String extractAccessToken(JSONVar _response)
 {
   const char *temp = _response["access_token"];
   if (DEBUG1)
@@ -531,9 +568,16 @@ bool validate2()
             Serial.print(">>> Raw Validate response:");
             Serial.println(payload);
           }
-          if (httpCode == HTTP_CODE_OK)
+          if (httpCode == 200)
           {
             twitchValidateResponse = parseJson(payload);
+          }
+          else if (httpCode == 401)
+          {
+            if (BASICLOG)
+            {
+              Serial.println(">>> Missing authorization token, empty token was submitted?");
+            }
           }
           else
           {
@@ -588,6 +632,7 @@ bool validate2()
   }
   else
   {
+    valid = false;
     if (BASICLOG)
     {
       Serial.println(">>> Failed to validate");

@@ -68,10 +68,9 @@ Set `BASICLOG` & `DEBUG` to `true` to enable all logs to help debug
 1. Create a Twitch developer account to obtain access keys https://dev.twitch.tv/docs/api/
 2. In Arduino IDE, fill `clientID` & `clientSecret` accordingly.
 
-3. To obtain access token you can use Postman (see [Twich Helix API OAuth client credentials flow](https://dev.twitch.tv/docs/authentication/getting-tokens-oauth#oauth-client-credentials-flow)) or look up in the logs with `BASICLOG` enabled which will print `  > New access token obtained.`
-   Upload the code to the μC.
-
-- Open serial monitor and grab the auth token. Paste it under variable `access_token` and re-upload the code.
+3. To obtain access token you can use Postman (see [Twich Helix API OAuth client credentials flow](https://dev.twitch.tv/docs/authentication/getting-tokens-oauth#oauth-client-credentials-flow)).
+   Otherwise it will be displayed in the logs after a successful authentication has been made. You can preview it with `BASICLOG` enabled which will print `  > New access token obtained.`
+   The token is now saved in the Preferences.
 
 4. The auth token lasts for around 60 days and will be renewed automatically.
 
